@@ -35,6 +35,7 @@ export default class Digital extends Component{
             isDisplay:true, //选择ID时清空
             isPush:true, //选择ID!=数据ID 图表不push数据点
             timeup: '', //时间戳
+            prevTimeup: '', //上一次时间戳
         };
         this.changeID = this.changeID.bind(this);
     }
@@ -79,6 +80,8 @@ export default class Digital extends Component{
                         battery:data.battery,
                         count:this.state.count+1,
                         isPush:true,
+                        prevTimeup: '',
+                        timeup: data.time
                     });
                 }else{
                     this.setState((prevState, props) => ({
@@ -90,7 +93,8 @@ export default class Digital extends Component{
                         battery:prevState.selectedID===data.id?data.battery:prevState.battery,
                         count:prevState.selectedID===data.id?prevState.count+1:prevState.count,
                         isPush:prevState.selectedID===data.id,
-                        timeup:prevState.selectedID===data.id?data.time: (prevState.time===undefined?timeup: prevState.time),
+                        prevTimeup: prevState.selectedID===data.id?prevState.timeup: prevState.prevTimeup,
+                        timeup:prevState.selectedID===data.id?data.time: prevState.timeup
 
                     }));
                 }
@@ -117,6 +121,8 @@ export default class Digital extends Component{
                 isPush: false,
                 isDisplay: false,
                 count:0,
+                timeup: msg.time,
+                prevTimeup: ''
             })
         }.bind(this));
     }
