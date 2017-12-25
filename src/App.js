@@ -10,23 +10,6 @@ export default class App extends Component {
             <Provider {...this.props}>
                 <HashRouter>
                     <div className="root">
-                        <nav className="navbar navbar-default navbar-fixed-top">
-                            <div className="container-fluid">
-                                <div className="collapse navbar-collapse navbar-center" id="navbar-example">
-                                    <ul className="nav navbar-nav">
-                                        {routers.map(function (route, i) {
-                                            return (
-                                                <li key={i}>
-                                                    <Link to={{pathname: route.path}}>
-                                                        {route.name}
-                                                    </Link>
-                                                </li>
-                                            )
-                                        })}
-                                    </ul>
-                                </div>
-                            </div>
-                        </nav>
                         <div>
                             <Switch>
                                 {routers.map((route, i) => {

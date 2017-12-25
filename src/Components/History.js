@@ -51,23 +51,31 @@ export default class History extends Component{
         return v;
     }
 
-    componentDidMount(){
+    componentWillMount(){
+        this._isMounted = true;
         const { store } = this.props;
         const socket = store.socket;
-        this.setState({
-            selectedID:"*",
-        });
-
+        if(this._isMounted){
+            this.setState({
+                selectedID:"*",
+            });
+        }
         socket.emit('searchID_user');
         socket.on("searchID_server", function (data) {
             let idArr = ["*"];
             data.map(function (item) {
                 idArr.push(item);
             });
-            this.setState({
-                idArr: idArr,
-            })
+            if(this._isMounted){
+                this.setState({
+                    idArr: idArr,
+                })
+            }
         }.bind(this));
+    }
+
+    componentWillUnmount() {
+        this._isMounted = false;
     }
 
     btnSearchClick(){
@@ -171,7 +179,7 @@ export default class History extends Component{
                         <p className="title_line"> </p>
                     </div>
                 </div>
-                <div className="container history-body">
+                <div className="history-body">
                     <div className="row search-condition">
                         <form className="container">
                             <div className="form-group col-md-2">

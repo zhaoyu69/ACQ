@@ -15,35 +15,34 @@ const dgram = require('dgram');
 let serverSocket = dgram.createSocket('udp4');
 
 app.get('/', function (req, res) {
-  res.sendFile(__dirname + '/dist/index.html');
+    res.sendFile(__dirname + '/dist/index.html');
 });
 app.use(express.static('dist'));
 
 server.listen(8080,function(){
-  console.log('listening on *:8080');
+    console.log('listening on *:8080');
 });
 
 //连接db
 db.open(function(err, db){
-  if(!err){
-      console.log('connect db');
-      db.createCollection('acq1db',function(err, collection){ //创建table
-          if(err){
-              console.log(err);
-          }else{
-            sensordata = collection;
-          }
-      });
-  }else{
-    console.log(err);
-  }
+    if(!err){
+        console.log('connect db');
+        db.createCollection('acq1db',function(err, collection){ //创建table
+            if(err){
+                console.log(err);
+            }else{
+                sensordata = collection;
+            }
+        });
+    }else{
+        console.log(err);
+    }
 });
 
 io.on('connect',function(socket){
-  mySocket = socket;
-  // console.log(mySocket);
+    mySocket = socket;
 
-  //  客户端请求返回所有的id
+    //  客户端请求返回所有的id
     mySocket.on('searchID_user', function () {
         const idArr = [];
         sensordata.find({}, {id:1, _id:0})
@@ -73,36 +72,36 @@ io.on('connect',function(socket){
             })
     });
 
-  // 监听客户端查询条件
-  mySocket.on("searchdata_user",function(cmd){
+    // 监听客户端查询条件
+    mySocket.on("searchdata_user",function(cmd){
     // console.log(cmd);//包含id，开始时间和结束时间
-    let condition;
-    if(cmd.id==="*"){ //查询所有
-      condition={
-        time:{
-          $gte:cmd.timestart,
-          $lte:cmd.timeend
+        let condition;
+        if(cmd.id==="*"){ //查询所有
+            condition={
+                time:{
+                    $gte:cmd.timestart,
+                    $lte:cmd.timeend
+                }
+            }
+        }else{ //查询单只
+            condition={
+                id:cmd.id,
+                time:{
+                    $gte:cmd.timestart,
+                    $lte:cmd.timeend
+                }
+            }
         }
-      }
-    }else{ //查询单只
-      condition={
-        id:cmd.id,
-        time:{
-          $gte:cmd.timestart,
-          $lte:cmd.timeend
-        }
-      }
-    }
 
-    sensordata.find(condition).toArray(function(err,result){
-      if(err){
-        console.log("Error:"+err);
-      }else{
-        // console.log(result);
-        mySocket.emit("searchdata_server",result); //查询数据库结果
-      }
-    })
-  });
+        sensordata.find(condition).toArray(function(err,result){
+            if(err){
+                console.log("Error:"+err);
+            }else{
+            // console.log(result);
+                mySocket.emit("searchdata_server",result); //查询数据库结果
+            }
+        })
+    });
 });
 
 serverSocket.bind(3001);
@@ -119,7 +118,6 @@ serverSocket.on('listening', () => {
 
 serverSocket.on("message", function (msg, rinfo) {
     console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
-
     let bufs = [];
     bufs.push(msg);
     let buffer = Buffer.concat(bufs);
@@ -199,31 +197,31 @@ serverSocket.on("message", function (msg, rinfo) {
 
 //校验和
 function checkSum(buffer,len){
-  let ir = 0;
-  for(let i=0;i<len;i++){
-    ir += buffer[i];
-  }
-  ir&=0xff; //补码
-  ir = (255-ir+1).toString(16);
-  return ir;
+    let ir = 0;
+    for(let i=0;i<len;i++){
+        ir += buffer[i];
+    }
+    ir&=0xff; //补码
+    ir = (255-ir+1).toString(16);
+    return ir;
 }
 
 //格式化时间
 function getNowFormatDate() {
-  let date = new Date();
-  let seperator1 = "/";
-  let seperator2 = ":";
-  let month = date.getMonth() + 1;
-  let days = date.getDate();
-  let hours = date.getHours();
-  let minutes = date.getMinutes();
-  let seconds = date.getSeconds();
-  let timeArr = [month,days,hours,minutes,seconds];
-  for(let i=0;i<timeArr.length;i++){
-    if(timeArr[i] <= 9){
-      timeArr[i] = "0" + timeArr[i];
+    let date = new Date();
+    let seperator1 = "/";
+    let seperator2 = ":";
+    let month = date.getMonth() + 1;
+    let days = date.getDate();
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    let seconds = date.getSeconds();
+    let timeArr = [month,days,hours,minutes,seconds];
+    for(let i=0;i<timeArr.length;i++){
+        if(timeArr[i] <= 9){
+            timeArr[i] = "0" + timeArr[i];
+        }
     }
-  }
     return date.getFullYear() + seperator1 + timeArr[0] + seperator1 + timeArr[1]
           + " " + timeArr[2] + seperator2 + timeArr[3] + seperator2 + timeArr[4];
 }

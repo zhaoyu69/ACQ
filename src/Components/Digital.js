@@ -34,16 +34,15 @@ export default class Digital extends Component{
             count:0, //X轴坐标
             isDisplay:true, //选择ID时清空
             isPush:true, //选择ID!=数据ID 图表不push数据点
-            isOne: true,
-            timeup: '',
+            timeup: '', //时间戳
         };
         this.changeID = this.changeID.bind(this);
     }
 
-    componentDidMount(){
+    componentWillMount() {
+        this._isMounted = true;
         const { store } = this.props;
         const socket = store.socket;
-
         socket.emit('searchID_user');
         socket.on("searchID_server", function (data) {
             idArr = data;
@@ -51,51 +50,56 @@ export default class Digital extends Component{
             socket.on('searchOne_server', function (res) {
                 const msg = res[0];
                 timeup = msg.time;
-                this.setState({
-                    sensorData: [msg.temp, msg.humi, msg.ch2o, msg.co2, msg.pm2d5, msg.voc],
-                    battery: msg.battery,
-                    selectedID: msg.id,
-                    timeup: msg.time,
-                    isPush: false,
-                    isDisplay: false,
-                })
+                if(this._isMounted){
+                    this.setState({
+                        sensorData: [msg.temp, msg.humi, msg.ch2o, msg.co2, msg.pm2d5, msg.voc],
+                        battery: msg.battery,
+                        selectedID: msg.id,
+                        timeup: msg.time,
+                        isPush: false,
+                        isDisplay: false,
+                        idArr: idArr,
+                    })
+                }
             }.bind(this));
-            this.setState({
-                idArr: data,
-            })
         }.bind(this));
 
         socket.on('sensordata_server', function (data) {
             if(!isContains(idArr,data.id)){
                 idArr.push(data.id);
             }
-            if(idArr.length===1){
-                this.setState({
-                    selectedID:idArr[0],
-                    idArr:idArr,
-                    isDisplay:true,
-                    prevSensordata:[0,0,0,0,0,0],
-                    sensorData:[data.temp,data.humi,data.ch2o,data.co2,data.pm2d5,data.voc],
-                    battery:data.battery,
-                    count:this.state.count+1,
-                    isPush:true,
-                    isOne: false,
-                });
-            }else{
-                this.setState((prevState, props) => ({
-                    selectedID:prevState.selectedID,
-                    idArr:idArr,
-                    isDisplay:true,
-                    prevSensordata:prevState.selectedID===data.id?prevState.sensorData:prevState.prevSensordata,
-                    sensorData:prevState.selectedID===data.id?[data.temp,data.humi,data.ch2o,data.co2,data.pm2d5,data.voc]:prevState.sensorData,
-                    battery:prevState.selectedID===data.id?data.battery:prevState.battery,
-                    count:prevState.selectedID===data.id?prevState.count+1:prevState.count,
-                    isPush:prevState.selectedID===data.id,
-                    isOne: false,
-                    timeup:prevState.selectedID===data.id?data.time: (prevState.time===undefined?timeup: prevState.time)
-                }));
+            if(this._isMounted){
+                if(idArr.length===1){
+                    this.setState({
+                        selectedID:idArr[0],
+                        idArr:idArr,
+                        isDisplay:true,
+                        prevSensordata:[0,0,0,0,0,0],
+                        sensorData:[data.temp,data.humi,data.ch2o,data.co2,data.pm2d5,data.voc],
+                        battery:data.battery,
+                        count:this.state.count+1,
+                        isPush:true,
+                    });
+                }else{
+                    this.setState((prevState, props) => ({
+                        selectedID:prevState.selectedID,
+                        idArr:idArr,
+                        isDisplay:true,
+                        prevSensordata:prevState.selectedID===data.id?prevState.sensorData:prevState.prevSensordata,
+                        sensorData:prevState.selectedID===data.id?[data.temp,data.humi,data.ch2o,data.co2,data.pm2d5,data.voc]:prevState.sensorData,
+                        battery:prevState.selectedID===data.id?data.battery:prevState.battery,
+                        count:prevState.selectedID===data.id?prevState.count+1:prevState.count,
+                        isPush:prevState.selectedID===data.id,
+                        timeup:prevState.selectedID===data.id?data.time: (prevState.time===undefined?timeup: prevState.time),
+
+                    }));
+                }
             }
         }.bind(this));
+    }
+
+    componentWillUnmount() {
+        this._isMounted = false;
     }
 
     //改变选择ID
@@ -111,9 +115,8 @@ export default class Digital extends Component{
                 sensorData: [msg.temp, msg.humi, msg.ch2o, msg.co2, msg.pm2d5, msg.voc],
                 battery: msg.battery,
                 isPush: false,
-                isDisplay: true,
+                isDisplay: false,
                 count:0,
-                isOne: true,
             })
         }.bind(this));
     }
@@ -160,7 +163,7 @@ export default class Digital extends Component{
                 />
             )
         }.bind(this));
-        if(!this.state.isOne && this.state.isPush){
+        if(this.state.isDisplay){
             return v;
         }else{
             return null;
