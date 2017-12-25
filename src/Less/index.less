@@ -1,0 +1,62 @@
+html, body, ul, li, ol, dl, dd, dt, p, h1, h2, h3, h4, h5, h6, form, fieldset, legend, img, input{
+	margin: 0;
+	padding: 0;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+html,body{
+	font-size: 12px;
+	font-family: "Open Sans", Helvetica Neue, Sans-serif;	
+	background:  #f3f5f8;
+}
+ol, ul {
+	list-style: none;
+}
+fieldset,img{
+	border: 0;
+}
+a{
+	text-decoration: none;
+	color:#000;
+}
+em,i{
+	font-style: normal;
+}
+.fl{
+	float: left;
+}
+.fr{
+	float: right;
+}
+.title_line{
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	bottom:40px;
+	width:50px;
+	height: 3px;
+	background: #008ed6;
+	border-radius: 20px;
+}
+.navbar{
+    height: 60px;
+    font-size: 16px;
+    background: #fff;
+    .nav{
+        li{
+            a{
+                height: 60px;
+                line-height: 30px;
+                cursor: pointer;
+            }
+        }
+        .active{
+            background: #008ed6;
+            opacity: 0.5;
+            color:#fff;
+        }
+    }
+}

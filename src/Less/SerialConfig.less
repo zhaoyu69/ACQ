@@ -1,0 +1,67 @@
+.config{
+    width:100%;
+    .config-left{
+        height: 800px;
+        background: url('../Images/configs.jpg') no-repeat center center/cover;
+        .triangle{
+            width: 0;
+            height: 0;
+            border-bottom: 30px solid transparent;
+            border-right: 30px solid #f3f5f8;
+            border-top: 30px solid transparent;
+            content: " ";
+            position: absolute;
+            right: 0;
+            top:50%;
+            transform: translateY(-50%);
+        }
+    }
+    .config-right{
+        padding:166px 0;
+        position: relative;
+        h3{
+            font-size: 22px;
+            color: #353535;
+            background: url('../Images/title_bg.png') no-repeat center bottom;
+            padding: 30px 0;
+            margin-bottom:30px;
+            font-family: "FZYaoti"            
+        }
+        .config-body{
+            width:250px;
+            font-size:14px;
+            label{
+                font-size: 16px;
+            }
+            select{
+                margin-top:3px;
+                height: 30px;
+                border-radius: 10px;
+                border:0;
+            }
+            .btnConnect{
+                height: 30px;
+                margin-top:20px;
+                border-radius: 10px;
+                border:0;
+                background: dodgerblue;
+                color:#fff;
+                cursor: pointer;
+            }
+        }
+        .borderBottom{
+            width:30%;
+            height: 4px;
+            position: absolute;
+            left: 50%;
+            bottom:0;
+            background: #eaeaea;
+            transform: translateX(-50%);
+            transition: width .3s linear;
+        }
+        .borderBottom-animate{
+            width:50%;
+        }
+    }
+    
+}

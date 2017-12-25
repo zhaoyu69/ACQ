@@ -1,2 +1,2 @@
-# acq1-web
+# ACQ
 Environmental quality monitoring platform

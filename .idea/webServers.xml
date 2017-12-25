@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="2b07ae24-af17-42fd-a643-b624f3b71a29" name="tomcat" url="http://zhaoyu69.vicp.io">
+        <fileTransfer port="0" mountedRoot="F:\web\Projects\acq1" accessType="MOUNT" />
+      </webServer>
+    </option>
+  </component>
+</project>
