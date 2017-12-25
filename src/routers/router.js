@@ -1,21 +1,15 @@
-import Config from '../Components/SerialConfig';
-import History from '../Components/History';
-import Digital from '../Components/Digital';
+import Digital from '../components/Digital';
+import History from '../components/History';
 
 export default [
     {
         path: '/',
-        name: '参数配置',
-        component: Config
-    },
-    {
-        path: '/History',
-        name: '历史数据',
-        component: History
-    },
-    {
-        path: '/Digital',
         name: '实时监测',
         component: Digital
+    },
+    {
+        path: '/history',
+        name: '历史数据',
+        component: History
     }
 ]

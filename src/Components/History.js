@@ -5,23 +5,23 @@ import DateTimeField from 'react-bootstrap-datetimepicker';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import HistoryCharts from './Child/HistoryCharts';
 import Spin from 'antd/lib/spin';
+import { observer, inject } from 'mobx-react';
 
 const FieldName = ["温度","湿度","甲醛","CO2","PM2.5","VOC"];
 const sensorUnit = ["℃","%RH","ppm","ppm","ug/m³","mg/m³"];
-var seriesData = [[],[],[],[],[],[]];
-var products = [];
+let seriesData = [[],[],[],[],[],[]];
+let products = [];
 
-const io = require('socket.io-client');
-const socket = io.connect('http://localhost:8888',{'forceNew':true});
-
+@inject('store')
+@observer
 export default class History extends Component{
     constructor(props){
         super(props);
         this.state = {
-            idArr: ["*"],
+            idArr: [],
             selectedID:'',
-            timestart:getNowFormatDate(),
-            timeend:getNowFormatDate(),
+            timestart:getNowFormatDate(1),
+            timeend:getNowFormatDate(0),
             products:[],
             showCharts:false,
             count:0,
@@ -52,20 +52,35 @@ export default class History extends Component{
     }
 
     componentDidMount(){
+        const { store } = this.props;
+        const socket = store.socket;
         this.setState({
-            selectedID:ReactDOM.findDOMNode(this.refs.selectID).value,
+            selectedID:"*",
         });
 
         socket.emit('searchID_user');
-
-        //查询数据库所有的id
-        socket.on('searchID_server', function (data) {
-            // console.log(data);
-            data.unshift("*");
+        socket.on("searchID_server", function (data) {
+            let idArr = ["*"];
+            data.map(function (item) {
+                idArr.push(item);
+            });
             this.setState({
-                idArr: data
+                idArr: idArr,
             })
         }.bind(this));
+    }
+
+    btnSearchClick(){
+        const socket = this.props.store.socket;
+        this.setState({
+            loading: true
+        });
+        let cmd = {
+            id:this.state.selectedID,
+            timestart:this.state.timestart,
+            timeend:this.state.timeend
+        };
+        socket.emit("searchdata_user",cmd);
 
         //接收查询后的数据
         socket.on('searchdata_server', function (data) {
@@ -110,20 +125,7 @@ export default class History extends Component{
                 loading: false
             })
 
-
         }.bind(this));
-    }
-
-    btnSearchClick(){
-        this.setState({
-            loading: true
-        });
-        let cmd = {
-            id:this.state.selectedID,
-            timestart:this.state.timestart,
-            timeend:this.state.timeend
-        };
-        socket.emit("searchdata_user",cmd);
     }
 
     changeTimeStart(newdate){
@@ -236,22 +238,21 @@ export default class History extends Component{
 }
 
 //格式化时间
-function getNowFormatDate() {
-    var date = new Date();
-    var seperator1 = "/";
-    var seperator2 = ":";
-    var month = date.getMonth() + 1;
-    var days = date.getDate();
-    var hours = date.getHours();
-    var minutes = date.getMinutes();
-    var seconds = date.getSeconds();
-    var timeArr = [month,days,hours,minutes,seconds];
-    for(var i=0;i<timeArr.length;i++){
+function getNowFormatDate(day) {
+    const date = new Date();
+    const seperator1 = "/";
+    const seperator2 = ":";
+    const month = date.getMonth() + 1;
+    const days = date.getDate() - day;
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
+    const timeArr = [month,days,hours,minutes,seconds];
+    for(let i=0;i<timeArr.length;i++){
       if(timeArr[i] <= 9){
         timeArr[i] = "0" + timeArr[i];
       }
     }
-    var currentdate = date.getFullYear() + seperator1 + timeArr[0] + seperator1 + timeArr[1]
+    return date.getFullYear() + seperator1 + timeArr[0] + seperator1 + timeArr[1]
             + " " + timeArr[2] + seperator2 + timeArr[3] + seperator2 + timeArr[4];
-    return currentdate;
   }

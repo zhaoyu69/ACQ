@@ -3,13 +3,11 @@ import '../Less/Digital.less';
 import GetBattery from './Child/GetBattery'; //电池电量
 import PanelValue from './Child/PanelValue'; //实时刷新值
 import DigitalCharts from './Child/DigitalCharts'; //实时曲线
+import { observer, inject } from 'mobx-react';
 
 let idArr = [];
 const sensorField = ["温度","湿度","甲醛","CO2","PM2.5","VOC"];
 const sensorUnit = ["℃","%RH","ppm","ppm","ug/m³","mg/m³"];
-
-const io = require('socket.io-client');
-const socket = io.connect('http://localhost:8888',{'forceNew':true});
 
 //数组是否包含某元素
 function isContains(arr,obj){
@@ -21,27 +19,48 @@ function isContains(arr,obj){
     return false;
 }
 
+@inject('store')
+@observer
 export default class Digital extends Component{
     constructor(props){
         super(props);
         this.state = {
+            idArr:[],
             selectedID:'', //已选择的ID
-            idArr:[], //供选择的ID
             prevSensordata:[0,0,0,0,0,0],
-            sensorData:[null,null,null,null,null,null],//数据
-            id:'', //数据ID
+            sensorData:[0,0,0,0,0,0],//数据
             battery:null, //电量
             count:0, //X轴坐标
             isDisplay:true, //选择ID时清空
             isPush:true, //选择ID!=数据ID 图表不push数据点
+            isOne: true,
         };
         this.changeID = this.changeID.bind(this);
     }
 
     componentDidMount(){
+        const { store } = this.props;
+        const socket = store.socket;
+
+        socket.emit('searchID_user');
+        socket.on("searchID_server", function (data) {
+            idArr = data;
+            socket.emit('searchOne_user', data[0]);
+            socket.on('searchOne_server', function (res) {
+                const msg = res[0];
+                this.setState({
+                    sensorData: [msg.temp, msg.humi, msg.ch2o, msg.co2, msg.pm2d5, msg.voc],
+                    battery: msg.battery,
+                    isPush: false,
+                    isDisplay: false,
+                })
+            }.bind(this));
+            this.setState({
+                idArr: data,
+            })
+        }.bind(this));
+
         socket.on('sensordata_server', function (data) {
-            console.log(data);
-            // socket.emit('sensordata_user', 'resolve all.'); //回复node
             if(!isContains(idArr,data.id)){
                 idArr.push(data.id);
             }
@@ -49,25 +68,25 @@ export default class Digital extends Component{
                 this.setState({
                     selectedID:idArr[0],
                     idArr:idArr,
-                    id:data.id,
                     isDisplay:true,
                     prevSensordata:[0,0,0,0,0,0],
                     sensorData:[data.temp,data.humi,data.ch2o,data.co2,data.pm2d5,data.voc],
                     battery:data.battery,
                     count:this.state.count+1,
                     isPush:true,
+                    isOne: false,
                 });
             }else{
                 this.setState((prevState, props) => ({
                     selectedID:prevState.selectedID,
                     idArr:idArr,
-                    id:data.id,
                     isDisplay:true,
                     prevSensordata:prevState.selectedID===data.id?prevState.sensorData:prevState.prevSensordata,
                     sensorData:prevState.selectedID===data.id?[data.temp,data.humi,data.ch2o,data.co2,data.pm2d5,data.voc]:prevState.sensorData,
                     battery:prevState.selectedID===data.id?data.battery:prevState.battery,
                     count:prevState.selectedID===data.id?prevState.count+1:prevState.count,
-                    isPush:prevState.selectedID===data.id
+                    isPush:prevState.selectedID===data.id,
+                    isOne: false,
                 }));
             }
         }.bind(this));
@@ -75,14 +94,22 @@ export default class Digital extends Component{
 
     //改变选择ID
     changeID(event){
-        this.setState({
-            selectedID:event.target.value,
-            prevSensordata:[0,0,0,0,0,0],
-            sensorData:[0,0,0,0,0,0],
-            isDisplay:false,
-            count:0,
-            battery:null
-        })
+        const socket = this.props.store.socket;
+        const valueID = event.target.value;
+        socket.emit('searchOne_user', valueID);
+        socket.on('searchOne_server', function (res) {
+            const msg = res[0];
+            this.setState({
+                selectedID:valueID,
+                prevSensordata:this.state.sensorData,
+                sensorData: [msg.temp, msg.humi, msg.ch2o, msg.co2, msg.pm2d5, msg.voc],
+                battery: msg.battery,
+                isPush: false,
+                isDisplay: true,
+                count:0,
+                isOne: true,
+            })
+        }.bind(this));
     }
 
     //实时显示值
@@ -127,10 +154,10 @@ export default class Digital extends Component{
                 />
             )
         }.bind(this));
-        if(this.state.sensorData[0]===null||this.state.sensorData[0]===0){
-            return null;
-        }else{
+        if(!this.state.isOne && this.state.isPush){
             return v;
+        }else{
+            return null;
         }
     }
 
@@ -151,12 +178,12 @@ export default class Digital extends Component{
                         </select>
                         <GetBattery battery={this.state.battery}/>
                     </div>
-                    <div className="row digital-nums">
+                    <div className="digital-nums">
                         <ul className="col-md-10 col-md-offset-1">
                             {this.PanelValueList()}
                         </ul>
                     </div>
-                    <div className="row digital-charts">
+                    <div className="digital-charts">
                         <ul className="col-md-12">
                             {this.DigitalChartsList()}
                         </ul>

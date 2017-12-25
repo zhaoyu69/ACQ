@@ -1,7 +1,7 @@
 import React from 'react';
 import {render} from 'react-dom';
 import App from './App';
-// import Test from './test';
+import AppStore from './store/appStore';
 
-// render(<Test />,document.getElementById("app"));
-render(<App />,document.getElementById("app"));
+const store = new AppStore();
+render(<App store={store} />,document.getElementById("app"));

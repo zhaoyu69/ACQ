@@ -7,13 +7,13 @@ module.exports = {
         './entry.js'
     ],
     output:{
-        path:path.join(__dirname, '/build'),
-        filename:"bundle.js",
-        publicPath:'dist/'
+        path:path.join(__dirname, './dist'),
+        filename: "bundle.js",
+        publicPath:'/'
     },
     devServer:{
         inline:true,
-        port:3333
+        port:3000
     },
     module:{
         loaders:[

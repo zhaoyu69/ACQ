@@ -20,6 +20,8 @@
     "jquery": "^3.2.1",
     "less": "^2.7.3",
     "less-loader": "^4.0.5",
+    "mobx": "^3.4.1",
+    "mobx-react": "^4.3.5",
     "mongodb": "^2.2.31",
     "os": "^0.1.1",
     "react": "^15.6.1",
@@ -44,5 +46,8 @@
   },
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "babel-plugin-transform-decorators-legacy": "^1.3.4"
+  }
 }
