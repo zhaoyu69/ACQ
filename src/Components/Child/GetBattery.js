@@ -3,7 +3,7 @@ import React,{Component} from 'react';
 //电池-初始
 function Battery_Init(){
     return(
-        <div></div>
+        <div> </div>
     )
 }
 
@@ -35,7 +35,7 @@ export default class GetBattery extends Component{
             battery:this.props.battery
         }
     }
-    
+
     componentWillReceiveProps(nextProps) {
         this.setState({
             battery: nextProps.battery

@@ -10,7 +10,7 @@ export default class HistoryCharts extends Component{
     render(){
         return(
             <li className="col-md-6" style={{paddingBottom:'40px'}}>
-                <ReactEcharts 
+                <ReactEcharts
                     option={this.Option()}
                     notMerge={true}
                     lazyUpdate={true}
@@ -23,23 +23,28 @@ export default class HistoryCharts extends Component{
     Option(){
         let option = {
             title:{
-                text:this.props.title+"面积图["+this.props.unit+"]"
+                text:this.props.title+"面积图["+this.props.unit+"]",
+                textStyle: {
+                    fontWeight: 'normal',
+                    fontSize: '16'
+                },
+                axisPointer: {
+                    type: 'cross',
+                    label: {
+                        backgroundColor: '#283b56'
+                    }
+                }
             },
             tooltip:{
                 trigger: 'axis',
             },
-            toolbox:{
 
-            },
-            legend: {
-                
-            },
             xAxis:{
                 type: 'category',
                 boundaryGap: false,
                 data:(function(){
                     let arr = [];
-                    for(var i=1;i<=this.props.count;i++){
+                    for(let i=1;i<=this.props.count;i++){
                         arr.push(i);
                     }
                     return arr;
@@ -92,7 +97,7 @@ export default class HistoryCharts extends Component{
                 },
                 data: this.props.series
             }
-        }
+        };
         return option;
     }
 }

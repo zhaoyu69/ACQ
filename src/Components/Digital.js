@@ -8,6 +8,9 @@ let idArr = [];
 const sensorField = ["温度","湿度","甲醛","CO2","PM2.5","VOC"];
 const sensorUnit = ["℃","%RH","ppm","ppm","ug/m³","mg/m³"];
 
+const io = require('socket.io-client');
+const socket = io.connect('http://localhost:8888',{'forceNew':true});
+
 //数组是否包含某元素
 function isContains(arr,obj){
     for(let i = 0; i < arr.length; i++){
@@ -35,12 +38,7 @@ export default class Digital extends Component{
         this.changeID = this.changeID.bind(this);
     }
 
-    componentWillMount(){
-        idArr=[];
-    }
-
     componentDidMount(){
-        let socket = this.props.socket;
         socket.on('sensordata_server', function (data) {
             console.log(data);
             // socket.emit('sensordata_user', 'resolve all.'); //回复node
@@ -142,7 +140,7 @@ export default class Digital extends Component{
                 <div className="row digital-t">
                     <div className="col-md-8 col-md-offset-2 text-center">
                         <h3>实时监控平台</h3>
-                        <p className="title_line"></p>
+                        <p className="title_line"> </p>
                     </div>
                 </div>
                 <div className="row digital-body">

@@ -4,25 +4,29 @@ import '../Less/History.less';
 import DateTimeField from 'react-bootstrap-datetimepicker';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
 import HistoryCharts from './Child/HistoryCharts';
+import Spin from 'antd/lib/spin';
 
-const idArr = ["*",1,2,3,4,5];
 const FieldName = ["温度","湿度","甲醛","CO2","PM2.5","VOC"];
 const sensorUnit = ["℃","%RH","ppm","ppm","ug/m³","mg/m³"];
 var seriesData = [[],[],[],[],[],[]];
 var products = [];
-var socket = {};
+
+const io = require('socket.io-client');
+const socket = io.connect('http://localhost:8888',{'forceNew':true});
 
 export default class History extends Component{
     constructor(props){
         super(props);
         this.state = {
+            idArr: ["*"],
             selectedID:'',
             timestart:getNowFormatDate(),
             timeend:getNowFormatDate(),
             products:[],
             showCharts:false,
-            count:0
-        }
+            count:0,
+            loading: false,
+        };
         this.changeID = this.changeID.bind(this);
         this.btnSearchClick = this.btnSearchClick.bind(this);
         this.changeTimeStart = this.changeTimeStart.bind(this);
@@ -39,7 +43,7 @@ export default class History extends Component{
 
     //选择ID
     selectIDList(){
-        let v = idArr.map(function(item,index){
+        let v = this.state.idArr.map(function(item,index){
             return (
                 <option key={index} value={item}>{item}</option>
             )
@@ -48,10 +52,20 @@ export default class History extends Component{
     }
 
     componentDidMount(){
-        socket = this.props.socket;
         this.setState({
             selectedID:ReactDOM.findDOMNode(this.refs.selectID).value,
-        })
+        });
+
+        socket.emit('searchID_user');
+
+        //查询数据库所有的id
+        socket.on('searchID_server', function (data) {
+            // console.log(data);
+            data.unshift("*");
+            this.setState({
+                idArr: data
+            })
+        }.bind(this));
 
         //接收查询后的数据
         socket.on('searchdata_server', function (data) {
@@ -69,7 +83,7 @@ export default class History extends Component{
                     pm2d5:element.pm2d5,
                     voc:element.voc,
                     time:element.time
-                })
+                });
 
                 seriesData[0].push(element.temp);
                 seriesData[1].push(element.humi);
@@ -80,7 +94,7 @@ export default class History extends Component{
 
             }, this);
 
-            if(data.length==0||this.state.selectedID=="*"){
+            if(data.length===0||this.state.selectedID==="*"){
                 this.setState({
                     showCharts:false
                 })
@@ -93,6 +107,7 @@ export default class History extends Component{
             this.setState({
                 products:products,
                 count:data.length,
+                loading: false
             })
 
 
@@ -100,12 +115,14 @@ export default class History extends Component{
     }
 
     btnSearchClick(){
-        socket = this.props.socket;
+        this.setState({
+            loading: true
+        });
         let cmd = {
             id:this.state.selectedID,
             timestart:this.state.timestart,
             timeend:this.state.timeend
-        }
+        };
         socket.emit("searchdata_user",cmd);
     }
 
@@ -149,7 +166,7 @@ export default class History extends Component{
                 <div className="row history-t">
                     <div className="col-md-8 col-md-offset-2 text-center">
                         <h3>历史数据查询</h3>
-                        <p className="title_line"></p>
+                        <p className="title_line"> </p>
                     </div>
                 </div>
                 <div className="container history-body">
@@ -187,24 +204,26 @@ export default class History extends Component{
                         </form>
                     </div>
                     <div className="row search-content">
-                        <BootstrapTable
-                            data={this.state.products}
-                            striped={true}
-                            hover={true}
-                            pagination
-                            search
-                            searchPlaceholder='查询结果搜索...'
-                            exportCSV csvFileName='sensordata.xls'
-                            >
-                            <TableHeaderColumn dataField="id" isKey={true} dataAlign="center" dataSort={true}>编号</TableHeaderColumn>
-                            <TableHeaderColumn dataField="temp" dataAlign="center" dataSort={true}>温度[℃]</TableHeaderColumn>
-                            <TableHeaderColumn dataField="humi" dataAlign="center" dataSort={true}>湿度[%RH]</TableHeaderColumn>
-                            <TableHeaderColumn dataField="ch2o" dataAlign="center" dataSort={true}>甲醛[ppm]</TableHeaderColumn>
-                            <TableHeaderColumn dataField="co2" dataAlign="center" dataSort={true}>CO2[ppm]</TableHeaderColumn>
-                            <TableHeaderColumn dataField="pm2d5" dataAlign="center" dataSort={true}>PM2.5[μg/m³]</TableHeaderColumn>
-                            <TableHeaderColumn dataField="voc" dataAlign="center" dataSort={true}>VOC[mg/m³]</TableHeaderColumn>
-                            <TableHeaderColumn dataField="time" dataAlign="center" dataSort={true}>时间</TableHeaderColumn>
-                        </BootstrapTable>
+                        <Spin spinning={this.state.loading}>
+                            <BootstrapTable
+                                data={this.state.products}
+                                striped={true}
+                                hover={true}
+                                pagination
+                                search
+                                searchPlaceholder='查询结果搜索...'
+                                exportCSV csvFileName='sensordata.xls'
+                                >
+                                <TableHeaderColumn dataField="id" isKey={true} dataAlign="center" dataSort={true}>编号</TableHeaderColumn>
+                                <TableHeaderColumn dataField="temp" dataAlign="center" dataSort={true}>温度[℃]</TableHeaderColumn>
+                                <TableHeaderColumn dataField="humi" dataAlign="center" dataSort={true}>湿度[%RH]</TableHeaderColumn>
+                                <TableHeaderColumn dataField="ch2o" dataAlign="center" dataSort={true}>甲醛[ppm]</TableHeaderColumn>
+                                <TableHeaderColumn dataField="co2" dataAlign="center" dataSort={true}>CO2[ppm]</TableHeaderColumn>
+                                <TableHeaderColumn dataField="pm2d5" dataAlign="center" dataSort={true}>PM2.5[μg/m³]</TableHeaderColumn>
+                                <TableHeaderColumn dataField="voc" dataAlign="center" dataSort={true}>VOC[mg/m³]</TableHeaderColumn>
+                                <TableHeaderColumn dataField="time" dataAlign="center" dataSort={true}>时间</TableHeaderColumn>
+                            </BootstrapTable>
+                        </Spin>
 
                         <ul className="span12" style={{marginTop:"20px"}}>
                             {this.HistoryChartsList()}
