@@ -6,6 +6,7 @@ import DigitalCharts from './Child/DigitalCharts'; //实时曲线
 import { observer, inject } from 'mobx-react';
 
 let idArr = [];
+let timeup = [];
 const sensorField = ["温度","湿度","甲醛","CO2","PM2.5","VOC"];
 const sensorUnit = ["℃","%RH","ppm","ppm","ug/m³","mg/m³"];
 
@@ -34,6 +35,7 @@ export default class Digital extends Component{
             isDisplay:true, //选择ID时清空
             isPush:true, //选择ID!=数据ID 图表不push数据点
             isOne: true,
+            timeup: '',
         };
         this.changeID = this.changeID.bind(this);
     }
@@ -48,9 +50,12 @@ export default class Digital extends Component{
             socket.emit('searchOne_user', data[0]);
             socket.on('searchOne_server', function (res) {
                 const msg = res[0];
+                timeup = msg.time;
                 this.setState({
                     sensorData: [msg.temp, msg.humi, msg.ch2o, msg.co2, msg.pm2d5, msg.voc],
                     battery: msg.battery,
+                    selectedID: msg.id,
+                    timeup: msg.time,
                     isPush: false,
                     isDisplay: false,
                 })
@@ -87,6 +92,7 @@ export default class Digital extends Component{
                     count:prevState.selectedID===data.id?prevState.count+1:prevState.count,
                     isPush:prevState.selectedID===data.id,
                     isOne: false,
+                    timeup:prevState.selectedID===data.id?data.time: (prevState.time===undefined?timeup: prevState.time)
                 }));
             }
         }.bind(this));
@@ -172,6 +178,7 @@ export default class Digital extends Component{
                 </div>
                 <div className="row digital-body">
                     <div className="digital-info text-center">
+                        <span className="time-up">时间：{this.state.timeup}</span>
                         <span className="sensorid-t">Sensor ID</span>
                         <select className="form-control selectID" value={this.state.selectedID} onChange={this.changeID}>
                             {this.selectIDList()}
