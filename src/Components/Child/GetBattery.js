@@ -44,9 +44,9 @@ export default class GetBattery extends Component{
 
     render(){
         let Battery = this.state.battery;
-        if(Battery>2.2){
+        if(Battery>66){
             return <Battery_Green />
-        }else if(Battery>1.1){
+        }else if(Battery>33){
             return <Battery_Yellow />
         }else if(Battery>0){
             return <Battery_Red />

@@ -53,25 +53,29 @@ export default class History extends Component{
 
     componentWillMount(){
         this._isMounted = true;
-        const { store } = this.props;
-        const socket = store.socket;
         if(this._isMounted){
             this.setState({
                 selectedID:"*",
             });
         }
-        socket.emit('searchID_user');
-        socket.on("searchID_server", function (data) {
-            let idArr = ["*"];
-            data.map(function (item) {
-                idArr.push(item);
+
+        fetch('http://47.97.114.102:8080/api/getIDList')
+            .then((response) => {
+                response.json().then(function(idList) {
+                    const idArr = ["*"];
+                    idList.map(function (id) {
+                        idArr.push(id)
+                    });
+                    if(this._isMounted){
+                        this.setState({
+                            idArr: idArr,
+                        })
+                    }
+                }.bind(this));
+            })
+            .catch((err) => {
+                console.log(err);
             });
-            if(this._isMounted){
-                this.setState({
-                    idArr: idArr,
-                })
-            }
-        }.bind(this));
     }
 
     componentWillUnmount() {
@@ -79,7 +83,6 @@ export default class History extends Component{
     }
 
     btnSearchClick(){
-        const socket = this.props.store.socket;
         this.setState({
             loading: true
         });
@@ -88,52 +91,60 @@ export default class History extends Component{
             timestart:this.state.timestart,
             timeend:this.state.timeend
         };
-        socket.emit("searchdata_user",cmd);
+        fetch('http://47.97.114.102:8080/api/searchdata',{
+            method:'POST',
+            headers: {
+                "Content-type":"application/json"
+            },
+            body: JSON.stringify(cmd)
+        })
+            .then((response) => {
+                response.json().then(function(data) {
+                    products = [];
+                    seriesData = [[],[],[],[],[],[]];
+                    // console.log(data);
 
-        //接收查询后的数据
-        socket.on('searchdata_server', function (data) {
-            products = [];
-            seriesData = [[],[],[],[],[],[]];
-            // console.log(data);
+                    data.forEach(function(element) {
+                        products.push({
+                            id:element.id,
+                            temp:element.temp,
+                            humi:element.humi,
+                            ch2o:element.ch2o,
+                            co2:element.co2,
+                            pm2d5:element.pm2d5,
+                            voc:element.voc,
+                            time:element.time
+                        });
 
-            data.forEach(function(element) {
-                products.push({
-                    id:element.id,
-                    temp:element.temp,
-                    humi:element.humi,
-                    ch2o:element.ch2o,
-                    co2:element.co2,
-                    pm2d5:element.pm2d5,
-                    voc:element.voc,
-                    time:element.time
-                });
+                        seriesData[0].push(element.temp);
+                        seriesData[1].push(element.humi);
+                        seriesData[2].push(element.ch2o);
+                        seriesData[3].push(element.co2);
+                        seriesData[4].push(element.pm2d5);
+                        seriesData[5].push(element.voc);
 
-                seriesData[0].push(element.temp);
-                seriesData[1].push(element.humi);
-                seriesData[2].push(element.ch2o);
-                seriesData[3].push(element.co2);
-                seriesData[4].push(element.pm2d5);
-                seriesData[5].push(element.voc);
+                    }, this);
 
-            }, this);
+                    if(data.length===0||this.state.selectedID==="*"){
+                        this.setState({
+                            showCharts:false
+                        })
+                    }else{
+                        this.setState({
+                            showCharts:true
+                        })
+                    }
 
-            if(data.length===0||this.state.selectedID==="*"){
-                this.setState({
-                    showCharts:false
-                })
-            }else{
-                this.setState({
-                    showCharts:true
-                })
-            }
-
-            this.setState({
-                products:products,
-                count:data.length,
-                loading: false
+                    this.setState({
+                        products:products,
+                        count:data.length,
+                        loading: false
+                    })
+                }.bind(this));
             })
-
-        }.bind(this));
+            .catch((err) => {
+                console.log(err);
+            });
     }
 
     changeTimeStart(newdate){
@@ -228,7 +239,7 @@ export default class History extends Component{
                                 <TableHeaderColumn dataField="temp" dataAlign="center" dataSort={true}>温度[℃]</TableHeaderColumn>
                                 <TableHeaderColumn dataField="humi" dataAlign="center" dataSort={true}>湿度[%RH]</TableHeaderColumn>
                                 <TableHeaderColumn dataField="ch2o" dataAlign="center" dataSort={true}>甲醛[ppm]</TableHeaderColumn>
-                                <TableHeaderColumn dataField="co2" dataAlign="center" dataSort={true}>CO2[ppm]</TableHeaderColumn>
+                                <TableHeaderColumn dataField="co2" dataAlign="center" dataSort={true}>CO<sub>2</sub>[ppm]</TableHeaderColumn>
                                 <TableHeaderColumn dataField="pm2d5" dataAlign="center" dataSort={true}>PM2.5[μg/m³]</TableHeaderColumn>
                                 <TableHeaderColumn dataField="voc" dataAlign="center" dataSort={true}>VOC[mg/m³]</TableHeaderColumn>
                                 <TableHeaderColumn dataField="time" dataAlign="center" dataSort={true}>时间</TableHeaderColumn>

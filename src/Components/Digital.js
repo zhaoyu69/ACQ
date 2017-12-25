@@ -6,9 +6,8 @@ import DigitalCharts from './Child/DigitalCharts'; //实时曲线
 import { observer, inject } from 'mobx-react';
 
 let idArr = [];
-let timeup = [];
 const sensorField = ["温度","湿度","甲醛","CO2","PM2.5","VOC"];
-const sensorUnit = ["℃","%RH","ppm","ppm","ug/m³","mg/m³"];
+const sensorUnit = ["℃","%RH","ug/m3","ppm","ug/m³","ug/m³"];
 
 //数组是否包含某元素
 function isContains(arr,obj){
@@ -32,7 +31,7 @@ export default class Digital extends Component{
             sensorData:[0,0,0,0,0,0],//数据
             battery:null, //电量
             count:0, //X轴坐标
-            isDisplay:true, //选择ID时清空
+            isDisplay:false, //选择ID时清空
             isPush:true, //选择ID!=数据ID 图表不push数据点
             timeup: '', //时间戳
             prevTimeup: '', //上一次时间戳
@@ -44,26 +43,53 @@ export default class Digital extends Component{
         this._isMounted = true;
         const { store } = this.props;
         const socket = store.socket;
-        socket.emit('searchID_user');
-        socket.on("searchID_server", function (data) {
-            idArr = data;
-            socket.emit('searchOne_user', data[0]);
-            socket.on('searchOne_server', function (res) {
-                const msg = res[0];
-                timeup = msg.time;
-                if(this._isMounted){
-                    this.setState({
-                        sensorData: [msg.temp, msg.humi, msg.ch2o, msg.co2, msg.pm2d5, msg.voc],
-                        battery: msg.battery,
-                        selectedID: msg.id,
-                        timeup: msg.time,
-                        isPush: false,
-                        isDisplay: false,
-                        idArr: idArr,
-                    })
-                }
+
+        const p1 = new Promise((resolve) => {
+            fetch('http://47.97.114.102:8080/api/getIDList')
+                .then((response) => {
+                    response.json().then(function(idList) {
+                        idArr = idList;
+                        resolve(idList);
+                    });
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
+        });
+
+        p1.then(function (idList) {
+            fetch('http://47.97.114.102:8080/api/getOne', {
+                method:'POST',
+                headers: {
+                    "Content-type":"application/json"
+                },
+                body: JSON.stringify({
+                    id: idList[0]
+                })
+            })
+                .then((response) => {
+                    response.json().then(function(data) {
+                        if(data.length!==0){
+                            const msg = data[0];
+                            if(this._isMounted){
+                                this.setState({
+                                    sensorData: [msg.temp, msg.humi, msg.ch2o, msg.co2, msg.pm2d5, msg.voc],
+                                    battery: msg.battery,
+                                    selectedID: msg.id,
+                                    timeup: msg.time,
+                                    isPush: true,
+                                    isDisplay: false,
+                                    count: 1,
+                                    idArr: idArr,
+                                })
+                            }
+                        }
+                    }.bind(this));
+                })
+                .catch((err) => {
+                    console.log(err);
+                });
             }.bind(this));
-        }.bind(this));
 
         socket.on('sensordata_server', function (data) {
             if(!isContains(idArr,data.id)){
@@ -107,24 +133,41 @@ export default class Digital extends Component{
     }
 
     //改变选择ID
-    changeID(event){
-        const socket = this.props.store.socket;
+    changeID(event) {
         const valueID = event.target.value;
-        socket.emit('searchOne_user', valueID);
-        socket.on('searchOne_server', function (res) {
-            const msg = res[0];
-            this.setState({
-                selectedID:valueID,
-                prevSensordata:this.state.sensorData,
-                sensorData: [msg.temp, msg.humi, msg.ch2o, msg.co2, msg.pm2d5, msg.voc],
-                battery: msg.battery,
-                isPush: false,
-                isDisplay: false,
-                count:0,
-                timeup: msg.time,
-                prevTimeup: ''
+        fetch('http://47.97.114.102:8080/api/getOne', {
+            method: 'POST',
+            headers: {
+                "Content-type": "application/json"
+            },
+            body: JSON.stringify({
+                id: valueID
             })
-        }.bind(this));
+        })
+            .then((response) => {
+                response.json().then(function (data) {
+                    // console.log(data);
+                    if (data.length !== 0) {
+                        const msg = data[0];
+                        if (this._isMounted) {
+                            this.setState({
+                                selectedID: valueID,
+                                prevSensordata: this.state.sensorData,
+                                sensorData: [msg.temp, msg.humi, msg.ch2o, msg.co2, msg.pm2d5, msg.voc],
+                                battery: msg.battery,
+                                isPush: true,
+                                isDisplay: false,
+                                count: 1,
+                                timeup: msg.time,
+                                prevTimeup: ''
+                            })
+                        }
+                    }
+                }.bind(this));
+            })
+            .catch((err) => {
+                console.log(err);
+            });
     }
 
     //实时显示值
@@ -169,11 +212,7 @@ export default class Digital extends Component{
                 />
             )
         }.bind(this));
-        if(this.state.isDisplay){
-            return v;
-        }else{
-            return null;
-        }
+        return v;
     }
 
     render(){
@@ -187,12 +226,16 @@ export default class Digital extends Component{
                 </div>
                 <div className="row digital-body">
                     <div className="digital-info text-center">
-                        <span className="time-up">时间：{this.state.timeup}</span>
-                        <span className="sensorid-t">Sensor ID</span>
-                        <select className="form-control selectID" value={this.state.selectedID} onChange={this.changeID}>
-                            {this.selectIDList()}
-                        </select>
-                        <GetBattery battery={this.state.battery}/>
+                        <div className="col-md-6 info-left">
+                            <span className="sensorid-t">Sensor ID</span>
+                            <select className="form-control selectID" value={this.state.selectedID} onChange={this.changeID}>
+                                {this.selectIDList()}
+                            </select>
+                            <GetBattery battery={this.state.battery}/>
+                        </div>
+                        <div className="col-md-6 info-right">
+                            <span className="time-up">{this.state.timeup}</span>
+                        </div>
                     </div>
                     <div className="digital-nums">
                         <ul className="col-md-10 col-md-offset-1">

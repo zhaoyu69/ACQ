@@ -31,9 +31,9 @@ module.exports = {
                 loader: 'style-loader!css-loader!less-loader'
             },
             {
-    　　　　　　test: /\.(png|jpg|gif)$/,
-    　　　　　　loader: "file-loader?name=images/[hash:8].[name].[ext]"
-    　　　　}
+　　　　　　     test: /\.(png|jpg|gif)$/,
+　　　　　　     loader: "file-loader?name=images/[hash:8].[name].[ext]"
+    　　　　 }
         ]
     },
     plugins:[

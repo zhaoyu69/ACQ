@@ -2,26 +2,17 @@ let express = require('express');
 let app = express();
 let server = require('http').Server(app);
 let io = require('socket.io')(server);
-let mySocket = {};
+
+//中间件
+const bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({extended: false}));// for parsing application/json
+app.use(bodyParser.json()); // for parsing application/x-www-form-urlencoded
 
 //mongodb数据库操作
 let mongodb = require('mongodb');
 let serverdb = new mongodb.Server('localhost',27017,{auto_reconnect:true});
 let db = new mongodb.Db('nodetest',serverdb,{safe:true});
 let sensordata; //表
-
-//udp通讯
-const dgram = require('dgram');
-let serverSocket = dgram.createSocket('udp4');
-
-app.get('/', function (req, res) {
-    res.sendFile(__dirname + '/dist/index.html');
-});
-app.use(express.static('dist'));
-
-server.listen(8080,function(){
-    console.log('listening on *:8080');
-});
 
 //连接db
 db.open(function(err, db){
@@ -39,72 +30,98 @@ db.open(function(err, db){
     }
 });
 
-io.on('connect',function(socket){
-    mySocket = socket;
+//udp通讯
+const dgram = require('dgram');
+let serverSocket = dgram.createSocket('udp4');
 
-    //  客户端请求返回所有的id
-    mySocket.on('searchID_user', function () {
-        const idArr = [];
-        sensordata.find({}, {id:1, _id:0})
-            .sort({id: 1})
-            .toArray(function (err, result) {
-                if(err){
-                    console.log(err);
-                }else{
-                    result.map(function (item) {
-                        if(!isContains(idArr, item.id)){
-                            idArr.push(item.id)
-                        }
-                    });
-                    mySocket.emit("searchID_server", idArr);
-                }
-            })
-    });
+app.get('/', function (req, res) {
+    res.sendFile(__dirname + '/dist/index.html');
+});
+app.use(express.static('dist'));
 
-    mySocket.on('searchOne_user', function (id) {
-        sensordata.find({id: id})
-            .sort({time: -1})
-            .limit(1)
-            .toArray(function (err, result) {
-                if(err) console.log(err);
-                else
-                    mySocket.emit('searchOne_server', result);
-            })
-    });
+//设置跨域访问
+app.all('*', function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+    res.header("X-Powered-By",' 3.2.1');
+    res.header("Content-Type", "application/json;charset=utf-8");
+    next();
+});
 
-    // 监听客户端查询条件
-    mySocket.on("searchdata_user",function(cmd){
-    // console.log(cmd);//包含id，开始时间和结束时间
-        let condition;
-        if(cmd.id==="*"){ //查询所有
-            condition={
-                time:{
-                    $gte:cmd.timestart,
-                    $lte:cmd.timeend
-                }
-            }
-        }else{ //查询单只
-            condition={
-                id:cmd.id,
-                time:{
-                    $gte:cmd.timestart,
-                    $lte:cmd.timeend
-                }
-            }
-        }
-
-        sensordata.find(condition).toArray(function(err,result){
+//api
+app.get('/api/getIDList', function (req, res) {
+    const idArr = [];
+    sensordata.find({}, {id:1, _id:0})
+        .sort({id: 1})
+        .toArray(function (err, result) {
             if(err){
-                console.log("Error:"+err);
+                console.log(err);
             }else{
-            // console.log(result);
-                mySocket.emit("searchdata_server",result); //查询数据库结果
+                result.map(function (item) {
+                    if(!isContains(idArr, item.id)){
+                        idArr.push(item.id)
+                    }
+                });
+                res.send(idArr);
+            }
+        });
+});
+
+app.post('/api/getOne', function (req, res) {
+    const _id = req.body.id;
+    sensordata.find({id: _id})
+        .sort({time: -1})
+        .limit(1)
+        .toArray(function (err, result) {
+            if(err) console.log(err);
+            else{
+                res.send(result);
             }
         })
-    });
+});
+
+app.post('/api/searchdata', function (req, res) {
+    const cmd = req.body;
+    let condition;
+    if(cmd.id==="*"){ //查询所有
+        condition={
+            time:{
+                $gte:cmd.timestart,
+                $lte:cmd.timeend
+            }
+        }
+    }else{ //查询单只
+        condition={
+            id:cmd.id,
+            time:{
+                $gte:cmd.timestart,
+                $lte:cmd.timeend
+            }
+        }
+    }
+
+    sensordata.find(condition).toArray(function(err,result){
+        if(err){
+            console.log("Error:"+err);
+        }else{
+            // console.log(result);
+            res.send(result); //查询数据库结果
+        }
+    })
+});
+
+server.listen(8080,function(){
+    console.log('listening on *:8080');
+});
+
+io.on('connect',function(socket){
+
 });
 
 serverSocket.bind(3001);
+
+serverSocket.setMaxListeners(100);
 
 serverSocket.on('error', function (err) {
     console.log(`server error:\n${err.stack}`);
@@ -157,7 +174,7 @@ serverSocket.on("message", function (msg, rinfo) {
                 let co2 = (buffer[11] * 256 + buffer[12]); //CO2
                 let pm2d5 = (buffer[13] * 256 + buffer[14]); //PM2.5
                 let voc = (buffer[15] * 256 + buffer[16]) / 1000.0; //voc
-                let battery = buffer[17].toString(16); //电量
+                let battery = buffer[17].toString(); //电量
                 let nowtime = getNowFormatDate();
                 // console.log(nowtime);
                 // console.log(temp+" "+humi+" "+ch2o+" "+co2+" "+pm2d5+" "+battery+" ");
@@ -183,17 +200,12 @@ serverSocket.on("message", function (msg, rinfo) {
                     }
                 });
 
-                mySocket.emit('sensordata_server', _document); //发送sensordata数据到客户端
-                mySocket.on('sensordata_user', function (data) {
-                    console.log(data);
-                });
+                io.emit('sensordata_server', _document); //发送sensordata数据到客户端
             }
             buffer.slice(0, len+6); //解析完成后清空缓存
         }
     }
 });
-
-// console.log(new Date().toLocaleString()); //2017-08-31 11:46:01
 
 //校验和
 function checkSum(buffer,len){

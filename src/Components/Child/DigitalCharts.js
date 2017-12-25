@@ -32,7 +32,6 @@ export default class DigitalCharts extends Component{
                     option={this.Option()}
                     notMerge={true}
                     lazyUpdate={true}
-                    onChartReady={this.onChartReadyCallback}
                 />
             </li>
         )
@@ -50,14 +49,17 @@ export default class DigitalCharts extends Component{
     myxAxisDate(obj){
         const { isDisplay,isPush, count } = this.state;
         const { index } = this.props;
+        obj[index] = obj[index] || [];
         if(isDisplay){
-            obj[index] = obj[index] || [];
             if(isPush){
                 obj[index].length>=XMax?obj[index].shift():obj[index];
                 obj[index].push(count);
             }
         }else{
             obj[index] = [];
+            if(isPush){
+                obj[index].push(count);
+            }
         }
         return obj[index];
     }
@@ -65,22 +67,27 @@ export default class DigitalCharts extends Component{
     mySeriesData(obj){
         const { isDisplay,isPush, sensorData } = this.state;
         const { index } = this.props;
+        obj[index] = obj[index] || [];
         if(isDisplay){
-            obj[index] = obj[index] || [];
             if(isPush){
                 obj[index].length>=XMax?obj[index].shift():obj[index];
                 obj[index].push(sensorData);
             }
         }else{
             obj[index] = [];
+            if(isPush){
+                obj[index].push(sensorData);
+            }
         }
         return obj[index];
     }
 
     Option(){
+        const { field, unit, index } = this.props;
+        const { xAxisData, seriesData } = this.state;
         let option = {
             title:{
-                text:this.props.field + '曲线 [' + this.props.unit + ']',
+                text: field + '曲线 [' + unit + ']',
                 textStyle: {
                     fontWeight: 'normal',
                     fontSize: '16'
@@ -100,12 +107,12 @@ export default class DigitalCharts extends Component{
                 boundaryGap: false,
                 data: (function(){
                     switch(this.props.index){
-                        case 0:return this.myxAxisDate(this.state.xAxisData.temp);break;
-                        case 1:return this.myxAxisDate(this.state.xAxisData.humi);break;
-                        case 2:return this.myxAxisDate(this.state.xAxisData.ch2o);break;
-                        case 3:return this.myxAxisDate(this.state.xAxisData.co2);break;
-                        case 4:return this.myxAxisDate(this.state.xAxisData.pm2d5);break;
-                        case 5:return this.myxAxisDate(this.state.xAxisData.voc);break;
+                        case 0:return this.myxAxisDate(xAxisData.temp);break;
+                        case 1:return this.myxAxisDate(xAxisData.humi);break;
+                        case 2:return this.myxAxisDate(xAxisData.ch2o);break;
+                        case 3:return this.myxAxisDate(xAxisData.co2);break;
+                        case 4:return this.myxAxisDate(xAxisData.pm2d5);break;
+                        case 5:return this.myxAxisDate(xAxisData.voc);break;
                     }
                 }.bind(this))()
             },
@@ -117,17 +124,17 @@ export default class DigitalCharts extends Component{
                 }
             },
             series:{
-                name:'温度',
+                name: field,
                 type:'line',
                 smooth : 0.3,
                 data: (function(){
-                    switch(this.props.index){
-                        case 0:return this.mySeriesData(this.state.seriesData.temp);break;
-                        case 1:return this.mySeriesData(this.state.seriesData.humi);break;
-                        case 2:return this.mySeriesData(this.state.seriesData.ch2o);break;
-                        case 3:return this.mySeriesData(this.state.seriesData.co2);break;
-                        case 4:return this.mySeriesData(this.state.seriesData.pm2d5);break;
-                        case 5:return this.mySeriesData(this.state.seriesData.voc);break;
+                    switch(index){
+                        case 0:return this.mySeriesData(seriesData.temp);break;
+                        case 1:return this.mySeriesData(seriesData.humi);break;
+                        case 2:return this.mySeriesData(seriesData.ch2o);break;
+                        case 3:return this.mySeriesData(seriesData.co2);break;
+                        case 4:return this.mySeriesData(seriesData.pm2d5);break;
+                        case 5:return this.mySeriesData(seriesData.voc);break;
                     }
                 }.bind(this))()
             }

@@ -12,18 +12,19 @@ export default class PanelValue extends Component{
 
     componentWillReceiveProps(nextProps) {
         this.setState({
-            prevValue:nextProps.prevValue,            
+            prevValue: nextProps.prevValue,
             fvalue: nextProps.fvalue
         });
     }
 
     render(){
+        const { field, prevValue, fvalue, unit } = this.props;
         return(
             <li className="col-md-4">
                 <div className="num-value">
-                    <CountUp start={this.props.prevValue} end={this.props.fvalue} duration={1} decimals={2}/>
+                    <CountUp start={prevValue} end={fvalue} duration={1} decimals={2}/>
                 </div>
-                <p className="num-t">{this.props.field}<span>[{this.props.unit}]</span></p>
+                <p className="num-t">{field==="CO2"?<span>CO<sub>2</sub></span>:<span>{field}</span>}<span>[{unit}]</span></p>
             </li>
         )
     }
