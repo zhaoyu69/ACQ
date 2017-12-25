@@ -238,7 +238,7 @@ export default class Digital extends Component{
                         </div>
                     </div>
                     <div className="digital-nums">
-                        <ul className="col-md-10 col-md-offset-1">
+                        <ul className="col-md-12">
                             {this.PanelValueList()}
                         </ul>
                     </div>

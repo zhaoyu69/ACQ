@@ -1,5 +1,4 @@
 import React,{Component} from 'react';
-import ReactDOM from 'react-dom';
 import '../Less/History.less';
 import DateTimeField from 'react-bootstrap-datetimepicker';
 import { BootstrapTable, TableHeaderColumn } from 'react-bootstrap-table';
@@ -26,11 +25,13 @@ export default class History extends Component{
             showCharts:false,
             count:0,
             loading: false,
+            winWidth: '',
         };
         this.changeID = this.changeID.bind(this);
         this.btnSearchClick = this.btnSearchClick.bind(this);
         this.changeTimeStart = this.changeTimeStart.bind(this);
         this.changeTimeEnd = this.changeTimeEnd.bind(this);
+        this.onWindowResize = this.onWindowResize.bind(this);
     }
 
     //改变选择ID
@@ -51,12 +52,19 @@ export default class History extends Component{
         return v;
     }
 
+    onWindowResize = () => {
+        this.setState({
+            winWidth:window.innerWidth,
+        })
+    };
+
     componentWillMount(){
         this._isMounted = true;
         if(this._isMounted){
             this.setState({
                 selectedID:"*",
             });
+            window.addEventListener('resize', this.onWindowResize);
         }
 
         fetch('http://47.97.114.102:8080/api/getIDList')
@@ -80,6 +88,7 @@ export default class History extends Component{
 
     componentWillUnmount() {
         this._isMounted = false;
+        window.removeEventListener('resize', this.onWindowResize);
     }
 
     btnSearchClick(){
@@ -245,7 +254,6 @@ export default class History extends Component{
                                 <TableHeaderColumn dataField="time" dataAlign="center" dataSort={true}>时间</TableHeaderColumn>
                             </BootstrapTable>
                         </Spin>
-
                         <ul className="span12" style={{marginTop:"20px"}}>
                             {this.HistoryChartsList()}
                         </ul>

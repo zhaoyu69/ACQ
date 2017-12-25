@@ -1,10 +1,8 @@
 .digital{
-    background: url(../Images/bg.jpg) no-repeat center center/cover;
-    background-attachment: fixed;
     width:100%;
     .digital-t{
         border-bottom:1px solid #CCCCCC;
-        background: #f0f0f0;
+        background: #fff;
         h3{
             font-size: 30px;
             color: #353535;
@@ -15,9 +13,8 @@
     }
     .digital-body{
         .digital-info{
-            background: #EDFEE0;
-            box-shadow: 0 5px 5px 0
-            rgba(0,0,0,0.3);
+            background: #f3f5f8;
+            box-shadow: 0 5px 5px 0 rgba(0,0,0,0.3);
             position: relative;
             overflow: hidden;
         }
@@ -45,15 +42,16 @@
             line-height: 32px;
         }
         .digital-nums{
+            background: url(../Images/bg.jpg) no-repeat center center/cover;
+            border-bottom: 1px solid #eee;
+            //background-attachment: fixed;
             clear: both;
-            padding:50px 0;
-            color:#fff;
+            padding:30px 0;
+            color:#000;
             overflow: hidden;
             li{
-                height: 200px;
+                height: 210px;
                 position: relative;
-                background: rgba(0,0,0,0.3);
-                border:1px solid #000;
                 .num-value{
                     font-family: 'Raleway', sans-serif;
                     line-height: 170px;
@@ -67,15 +65,15 @@
                     position: absolute;
                     left: 50%;
                     transform: translateX(-50%);
-                    bottom:10px;
+                    bottom:20px;
                 }
             }
         }
         .digital-charts{
             clear: both;
             overflow: hidden;
-            background: #EDFEE0;
             padding-top:30px;
+            background: #fcfcff;
         }
     }
 
