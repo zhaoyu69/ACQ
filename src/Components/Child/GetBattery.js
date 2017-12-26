@@ -10,21 +10,21 @@ function Battery_Init(){
 //电池-绿
 function Battery_Green(){
     return(
-        <img className="battery-img" src={require('../../Images/battery_full.png')} />
+        <img className="battery-img" src={require('../../Images/battery_full.png')} alt="绿色"/>
     )
 }
 
 //电池-黄
 function Battery_Yellow(){
     return(
-        <img className="battery-img" src={require('../../Images/battery_half.png')} />
+        <img className="battery-img" src={require('../../Images/battery_half.png')} alt="黄色"/>
     )
 }
 
 //电池-红
 function Battery_Red(){
     return(
-        <img className="battery-img" src={require('../../Images/battery_empty.png')} />
+        <img className="battery-img" src={require('../../Images/battery_empty.png')} alt="红色"/>
     )
 }
 

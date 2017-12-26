@@ -153,7 +153,7 @@ serverSocket.on('listening', () => {
 });
 
 serverSocket.on("message", function (msg, rinfo) {
-    console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
+    console.log(`server get from ${rinfo.address}:${rinfo.port}`);
     let bufs = [];
     bufs.push(msg);
     let buffer = Buffer.concat(bufs);
@@ -220,7 +220,7 @@ serverSocket.on("message", function (msg, rinfo) {
                         "pm25Value": pm2d5,
                         "TVOCValue": voc,
                         "Power": battery,
-                        "tempUnit": "℃",
+                        "tempUnit": "0C",
                         "humidityUnit": "%RH",
                         "HCHOUnit": "ug/m³",
                         "co2Unit": "ppm",
@@ -238,7 +238,7 @@ serverSocket.on("message", function (msg, rinfo) {
                 //插入数据=>mongodb
                 sensordata.insert(_document,function(err){
                     if(err){
-                        console.log('Error:'+err);
+                        console.log('mongodb insert error:'+err);
                     }
                 });
 

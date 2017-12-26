@@ -24,7 +24,7 @@ export default class PanelValue extends Component{
                 <div className="num-value">
                     <CountUp start={prevValue} end={fvalue} duration={1} decimals={2}/>
                 </div>
-                <p className="num-t">{field==="CO2"?<span>CO<sub>2</sub></span>:<span>{field}</span>}<span>[{unit}]</span></p>
+                <p className="num-t"><span>{field}</span><span>[{unit}]</span></p>
             </li>
         )
     }

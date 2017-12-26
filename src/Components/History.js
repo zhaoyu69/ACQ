@@ -6,8 +6,8 @@ import HistoryCharts from './Child/HistoryCharts';
 import Spin from 'antd/lib/spin';
 import { observer, inject } from 'mobx-react';
 
-const FieldName = ["温度","湿度","甲醛","CO2","PM2.5","VOC"];
-const sensorUnit = ["℃","%RH","ppm","ppm","ug/m³","mg/m³"];
+const FieldName = ["温度","湿度","甲醛","CO₂","PM2.5","VOC"];
+const sensorUnit = ["℃","%RH","ug/m³","ppm","ug/m³","mg/m³"];
 let seriesData = [[],[],[],[],[],[]];
 let products = [];
 
@@ -25,6 +25,7 @@ export default class History extends Component{
             showCharts:false,
             count:0,
             loading: false,
+            idloading: false,
             winWidth: '',
         };
         this.changeID = this.changeID.bind(this);
@@ -63,8 +64,8 @@ export default class History extends Component{
         if(this._isMounted){
             this.setState({
                 selectedID:"*",
+                idloading: true,
             });
-            window.addEventListener('resize', this.onWindowResize);
         }
 
         fetch('http://47.97.114.102:8080/api/getIDList')
@@ -77,6 +78,7 @@ export default class History extends Component{
                     if(this._isMounted){
                         this.setState({
                             idArr: idArr,
+                            idloading: false,
                         })
                     }
                 }.bind(this));
@@ -88,7 +90,6 @@ export default class History extends Component{
 
     componentWillUnmount() {
         this._isMounted = false;
-        window.removeEventListener('resize', this.onWindowResize);
     }
 
     btnSearchClick(){
@@ -203,10 +204,12 @@ export default class History extends Component{
                     <div className="row search-condition">
                         <form className="container">
                             <div className="form-group col-md-2">
-                                <label>编号</label>
-                                <select className="form-control selectID" value={this.state.selectedID} onChange={this.changeID} ref="selectID">
-                                    {this.selectIDList()}
-                                </select>
+                                <Spin spinning={this.state.idloading}>
+                                    <label>编号</label>
+                                    <select className="form-control selectID" value={this.state.selectedID} onChange={this.changeID} ref="selectID">
+                                        {this.selectIDList()}
+                                    </select>
+                                </Spin>
                             </div>
                             <div className="form-group col-md-4">
                                 <label>开始时间</label>
@@ -229,7 +232,9 @@ export default class History extends Component{
                                 />
                             </div>
                             <div className="form-group col-md-2">
-                                <button type="button" className="btn btn-default btnSearch" onClick={this.btnSearchClick}>查询</button>
+                                <Spin spinning={this.state.idloading}>
+                                    <button type="button" className="btn btn-default btnSearch" onClick={this.btnSearchClick}>查询</button>
+                                </Spin>
                             </div>
                         </form>
                     </div>
@@ -247,10 +252,10 @@ export default class History extends Component{
                                 <TableHeaderColumn dataField="id" isKey={true} dataAlign="center" dataSort={true}>编号</TableHeaderColumn>
                                 <TableHeaderColumn dataField="temp" dataAlign="center" dataSort={true}>温度[℃]</TableHeaderColumn>
                                 <TableHeaderColumn dataField="humi" dataAlign="center" dataSort={true}>湿度[%RH]</TableHeaderColumn>
-                                <TableHeaderColumn dataField="ch2o" dataAlign="center" dataSort={true}>甲醛[ppm]</TableHeaderColumn>
-                                <TableHeaderColumn dataField="co2" dataAlign="center" dataSort={true}>CO<sub>2</sub>[ppm]</TableHeaderColumn>
-                                <TableHeaderColumn dataField="pm2d5" dataAlign="center" dataSort={true}>PM2.5[μg/m³]</TableHeaderColumn>
-                                <TableHeaderColumn dataField="voc" dataAlign="center" dataSort={true}>VOC[mg/m³]</TableHeaderColumn>
+                                <TableHeaderColumn dataField="ch2o" dataAlign="center" dataSort={true}>甲醛[ug/m³]</TableHeaderColumn>
+                                <TableHeaderColumn dataField="co2" dataAlign="center" dataSort={true}>CO₂[ppm]</TableHeaderColumn>
+                                <TableHeaderColumn dataField="pm2d5" dataAlign="center" dataSort={true}>PM2.5[ug/m³]</TableHeaderColumn>
+                                <TableHeaderColumn dataField="voc" dataAlign="center" dataSort={true}>VOC[ug/m³]</TableHeaderColumn>
                                 <TableHeaderColumn dataField="time" dataAlign="center" dataSort={true}>时间</TableHeaderColumn>
                             </BootstrapTable>
                         </Spin>

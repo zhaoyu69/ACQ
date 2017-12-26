@@ -4,10 +4,11 @@ import GetBattery from './Child/GetBattery'; //电池电量
 import PanelValue from './Child/PanelValue'; //实时刷新值
 import DigitalCharts from './Child/DigitalCharts'; //实时曲线
 import { observer, inject } from 'mobx-react';
+import { Spin } from 'antd';
 
 let idArr = [];
-const sensorField = ["温度","湿度","甲醛","CO2","PM2.5","VOC"];
-const sensorUnit = ["℃","%RH","ug/m3","ppm","ug/m³","ug/m³"];
+const sensorField = ["温度","湿度","甲醛","CO₂","PM2.5","VOC"];
+const sensorUnit = ["℃","%RH","ug/m³","ppm","ug/m³","ug/m³"];
 
 //数组是否包含某元素
 function isContains(arr,obj){
@@ -35,6 +36,8 @@ export default class Digital extends Component{
             isPush:true, //选择ID!=数据ID 图表不push数据点
             timeup: '', //时间戳
             prevTimeup: '', //上一次时间戳
+            loading: true,
+            idloading: true,
         };
         this.changeID = this.changeID.bind(this);
     }
@@ -49,8 +52,11 @@ export default class Digital extends Component{
                 .then((response) => {
                     response.json().then(function(idList) {
                         idArr = idList;
+                        this.setState({
+                            idloading: false,
+                        });
                         resolve(idList);
-                    });
+                    }.bind(this));
                 })
                 .catch((err) => {
                     console.log(err);
@@ -81,6 +87,7 @@ export default class Digital extends Component{
                                     isDisplay: false,
                                     count: 1,
                                     idArr: idArr,
+                                    loading: false,
                                 })
                             }
                         }
@@ -159,7 +166,7 @@ export default class Digital extends Component{
                                 isDisplay: false,
                                 count: 1,
                                 timeup: msg.time,
-                                prevTimeup: ''
+                                prevTimeup: '',
                             })
                         }
                     }
@@ -225,28 +232,34 @@ export default class Digital extends Component{
                     </div>
                 </div>
                 <div className="row digital-body">
-                    <div className="digital-info text-center">
-                        <div className="col-md-6 info-left">
-                            <span className="sensorid-t">Sensor ID</span>
-                            <select className="form-control selectID" value={this.state.selectedID} onChange={this.changeID}>
-                                {this.selectIDList()}
-                            </select>
-                            <GetBattery battery={this.state.battery}/>
+                    <Spin spinning={this.state.idloading}>
+                        <div className="digital-info text-center">
+                            <div className="col-md-6 info-left">
+                                <span className="sensorid-t">传感器编号</span>
+                                <select className="form-control selectID" value={this.state.selectedID} onChange={this.changeID}>
+                                    {this.selectIDList()}
+                                </select>
+                                <GetBattery battery={this.state.battery}/>
+                            </div>
+                            <div className="col-md-6 info-right">
+                                <span className="time-up">{this.state.timeup}</span>
+                            </div>
                         </div>
-                        <div className="col-md-6 info-right">
-                            <span className="time-up">{this.state.timeup}</span>
+                    </Spin>
+                    <Spin spinning={this.state.loading}>
+                        <div className="digital-nums">
+                            <ul className="col-md-12">
+                                {this.PanelValueList()}
+                            </ul>
                         </div>
-                    </div>
-                    <div className="digital-nums">
-                        <ul className="col-md-12">
-                            {this.PanelValueList()}
-                        </ul>
-                    </div>
-                    <div className="digital-charts">
-                        <ul className="col-md-12">
-                            {this.DigitalChartsList()}
-                        </ul>
-                    </div>
+                    </Spin>
+                    <Spin spinning={this.state.loading}>
+                        <div className="digital-charts">
+                            <ul className="col-md-12">
+                                {this.DigitalChartsList()}
+                            </ul>
+                        </div>
+                    </Spin>
                 </div>
             </div>
         )
