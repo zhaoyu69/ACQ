@@ -46,10 +46,9 @@ export default class Digital extends Component{
         this._isMounted = true;
         const { store } = this.props;
         const socket = store.socket;
-        const fetchAddr = store.fetchAddr;
 
         const p1 = new Promise((resolve) => {
-            fetch(`${fetchAddr}/api/getIDList`)
+            fetch('http://47.97.114.102:8080/api/getIDList')
                 .then((response) => {
                     response.json().then(function(idList) {
                         idArr = idList;
@@ -65,7 +64,7 @@ export default class Digital extends Component{
         });
 
         p1.then(function (idList) {
-            fetch(`${fetchAddr}/api/getOne`, {
+            fetch('http://47.97.114.102:8080/api/getOne', {
                 method:'POST',
                 headers: {
                     "Content-type":"application/json"
@@ -142,13 +141,8 @@ export default class Digital extends Component{
 
     //改变选择ID
     changeID(event) {
-        this.setState({
-            idloading: true,
-            loading: true
-        });
-        const fetchAddr = this.props.store.fetchAddr;
         const valueID = event.target.value;
-        fetch(`${fetchAddr}/api/getOne`, {
+        fetch('http://47.97.114.102:8080/api/getOne', {
             method: 'POST',
             headers: {
                 "Content-type": "application/json"
@@ -173,8 +167,6 @@ export default class Digital extends Component{
                                 count: 1,
                                 timeup: msg.time,
                                 prevTimeup: '',
-                                idloading: false,
-                                loading: false
                             })
                         }
                     }

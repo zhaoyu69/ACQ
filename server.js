@@ -218,10 +218,10 @@ serverSocket.on("message", function (msg, rinfo) {
                         "Power": battery,
                         "tempUnit": "0C",
                         "humidityUnit": "%RH",
-                        "HCHOUnit": "ug/m³",
+                        "HCHOUnit": "ug/m3",
                         "co2Unit": "ppm",
-                        "pm25Unit": "ug/m³",
-                        "TVOCUnit": "ug/m³",
+                        "pm25Unit": "ug/m3",
+                        "TVOCUnit": "ug/m3",
                         "PowerUnit": "%"
                     },
                     "alarm":{
