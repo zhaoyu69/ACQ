@@ -1,6 +1,8 @@
 import { observable } from 'mobx';
 const io = require('socket.io-client');
-const socket = io.connect('http://47.97.114.102:8080',{
+const address = document.location.protocol + "//" + document.location.hostname + ":" + document.location.port;
+
+const socket = io.connect(address,{
     forceNew: true,
     reconnection: true,
     reconnectionDelay: 1000
@@ -8,6 +10,7 @@ const socket = io.connect('http://47.97.114.102:8080',{
 
 class appStore {
     @observable socket = socket;
+    @observable fetchAddr = address;
 }
 
 export default appStore;

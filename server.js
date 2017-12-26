@@ -6,16 +6,12 @@ const io = require('socket.io')(server);
 
 //读取.config endpoint
 const rf = require('fs');
-const _endpoint = rf.readFileSync("./.config","utf-8");
-const _arr = _endpoint.split(':');
-const _ip = _arr[0];
-const _port = parseInt(_arr[1].substring(0, _arr[1].indexOf('/')));
-const _path = _arr[1].substring(_arr[1].indexOf('/'));
+const _endpoint = JSON.parse(rf.readFileSync("./endpoint.json","utf-8"));
 
 const options = {
-    hostname: _ip,
-    port: _port,
-    path: _path,
+    hostname: _endpoint.hostname,
+    port: _endpoint.port,
+    path: _endpoint.path,
     method: 'POST',
     headers: {
         'Content-Type': 'application/json; charset=UTF-8'

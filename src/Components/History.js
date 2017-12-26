@@ -67,8 +67,8 @@ export default class History extends Component{
                 idloading: true,
             });
         }
-
-        fetch('http://47.97.114.102:8080/api/getIDList')
+        const fetchAddr = this.props.store.fetchAddr;
+        fetch(`${fetchAddr}/api/getIDList`)
             .then((response) => {
                 response.json().then(function(idList) {
                     const idArr = ["*"];
@@ -93,6 +93,7 @@ export default class History extends Component{
     }
 
     btnSearchClick(){
+        const fetchAddr = this.props.store.fetchAddr;
         this.setState({
             loading: true
         });
@@ -101,7 +102,7 @@ export default class History extends Component{
             timestart:this.state.timestart,
             timeend:this.state.timeend
         };
-        fetch('http://47.97.114.102:8080/api/searchdata',{
+        fetch(`${fetchAddr}/api/searchdata`,{
             method:'POST',
             headers: {
                 "Content-type":"application/json"
