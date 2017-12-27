@@ -60,7 +60,7 @@ export default class HistoryCharts extends Component{
             dataZoom: [{
                 type: 'inside',
                 start: 0,
-                end: 10
+                end: 100
             }, {
                 start: 0,
                 end: 10,
